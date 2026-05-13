@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Gio — Lazy Inventor</title>
+  <link rel="manifest" href="data:application/manifest+json,{
+    \"name\": \"Gio - Lazy Inventor\",
+    \"short_name\": \"Gio\",
+    \"start_url\": \".\",
+    \"display\": \"standalone\",
+    \"background_color\": \"#000000\",
+    \"theme_color\": \"#22c55e\",
+    \"icons\": [{\"src\": \"https://em-content.zobj.net/thumbs/120/apple/325/light-bulb_1f4a1.png\", \"sizes\": \"192x192\", \"type\": \"image/png\"}]
+  }">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .chat-bubble { max-width: 85%; }
+  </style>
+</head>
+<body class="bg-black text-white min-h-screen pb-20">
+  <div class="max-w-xl mx-auto">
+    <!-- Header -->
+    <div class="bg-zinc-900 p-4 flex items-center gap-3 border-b border-zinc-800 sticky top-0 z-50">
+      <div class="w-10 h-10 bg-lime-400 rounded-3xl flex items-center justify-center text-3xl shadow-inner">💡</div>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Gio</h1>
+        <p class="text-lime-400 text-sm -mt-1">Lazy Inventor OS</p>
+      </div>
+    </div>
+
+    <!-- Chat area -->
+    <div id="chat" class="p-4 space-y-6 min-h-[calc(100vh-180px)] overflow-y-auto pb-32"></div>
+
+    <!-- Quick action bar -->
+    <div class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-700 rounded-3xl px-4 py-3 flex gap-2 shadow-2xl z-50 max-w-[92%] overflow-x-auto">
+      <button onclick="quickAction('full')" class="bg-lime-400 hover:bg-lime-300 text-black px-6 py-2.5 rounded-2xl text-sm font-semibold whitespace-nowrap">🔨 Full Prototype</button>
+      <button onclick="quickAction('visualize')" class="bg-white text-black px-6 py-2.5 rounded-2xl text-sm font-semibold whitespace-nowrap">🖼️ Visualize</button>
+      <button onclick="quickAction('bom')" class="bg-white text-black px-6 py-2.5 rounded-2xl text-sm font-semibold whitespace-nowrap">📋 BOM</button>
+      <button onclick="quickAction('code')" class="bg-white text-black px-6 py-2.5 rounded-2xl text-sm font-semibold whitespace-nowrap">💻 Code</button>
+      <button onclick="quickAction('guide')" class="bg-white text-black px-6 py-2.5 rounded-2xl text-sm font-semibold whitespace-nowrap">📖 Lazy Guide</button>
+    </div>
+
+    <!-- Input bar -->
+    <div class="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-700 p-4 max-w-xl mx-auto">
+      <div class="flex gap-3">
+        <input id="apiKey" type="password" placeholder="xAI API key" 
+               class="flex-1 bg-zinc-800 rounded-3xl px-5 py-4 text-sm focus:outline-none">
+        <button onclick="saveKey()" class="bg-zinc-700 hover:bg-zinc-600 px-7 rounded-3xl text-xs font-medium">SAVE</button>
+        
+        <input id="prompt" type="text" placeholder="Your lazy invention idea..." 
+               class="flex-[2] bg-zinc-800 rounded-3xl px-5 py-4 text-sm focus:outline-none"
+               onkeypress="if(event.key==='Enter') sendMessage()">
+        
+        <button onclick="sendMessage()" 
+                class="w-14 h-14 bg-lime-400 rounded-3xl flex items-center justify-center text-black text-3xl shadow-inner">↑</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let messages = [
+      {role: "system", content: "You are Gio, sarcastic & practical AI for lazy inventors. Turn any vague idea into a full prototype instantly: refined idea, features, cheap BOM, 5-step build guide, code, feasibility 1-10 + red flags. Use emojis."},
+      {role: "assistant", content: "Yo I'm Gio — live on GitHub! Drop your dumbest idea and I'll prototype it instantly. What's the lazy invention today? 🚀"}
+    ];
+
+    const API_BASE = "https://api.x.ai/v1";
+    let API_KEY = localStorage.getItem("xai_key") || "";
+
+    function saveKey() {
+      API_KEY = document.getElementById("apiKey").value.trim();
+      if (API_KEY) {
+        localStorage.setItem("xai_key", API_KEY);
+        alert("✅ Key saved! (Only stored on your phone)");
+        document.getElementById("apiKey").value = "••••••••••••";
+      }
+    }
+
+    function renderChat() {
+      const chat = document.getElementById("chat");
+      chat.innerHTML = "";
+      messages.forEach(m => {
+        if (m.role === "assistant") {
+          const div = document.createElement("div");
+          div.className = "flex justify-start";
+          div.innerHTML = `
+            <div class="chat-bubble bg-zinc-800 rounded-3xl rounded-tl-none px-5 py-4 max-w-[85%]">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-3xl">💡</span>
+                <span class="font-bold text-lime-400">Gio</span>
+              </div>
+              <div class="text-[15px] leading-relaxed">${m.content}</div>
+              ${m.image ? `<img src="${m.image}" class="mt-4 rounded-2xl w-full shadow-md">` : ""}
+            </div>`;
+          chat.appendChild(div);
+        } else if (m.role === "user") {
+          const div = document.createElement("div");
+          div.className = "flex justify-end";
+          div.innerHTML = `<div class="chat-bubble bg-lime-400 text-black rounded-3xl rounded-tr-none px-5 py-4">${m.content}</div>`;
+          chat.appendChild(div);
+        }
+      });
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("prompt");
+      const prompt = input.value.trim();
+      if (!prompt) return;
+      if (!API_KEY) {
+        alert("Enter your xAI API key first!");
+        return;
+      }
+
+      messages.push({role: "user", content: prompt});
+      renderChat();
+      input.value = "";
+
+      const loadingId = "loading-" + Date.now();
+      const chat = document.getElementById("chat");
+      chat.innerHTML += `<div id="${loadingId}" class="flex justify-start"><div class="chat-bubble bg-zinc-800 rounded-3xl rounded-tl-none px-5 py-4 flex items-center gap-3"><span class="text-3xl animate-pulse">💡</span><span>Gio is prototyping...</span></div></div>`;
+      chat.scrollTop = chat.scrollHeight;
+
+      try {
+        // Chat
+        const chatRes = await fetch(`${API_BASE}/chat/completions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
+          body: JSON.stringify({ model: "grok-4.3", messages: messages })
+        });
+        const chatData = await chatRes.json();
+        let reply = chatData.choices[0].message.content;
+
+        // Image if requested
+        let imageUrl = null;
+        if (/visualize|image|picture|show|render/i.test(prompt)) {
+          const imgRes = await fetch(`${API_BASE}/images/generations`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${API_KEY}` },
+            body: JSON.stringify({
+              model: "grok-imagine-image-quality",
+              prompt: `Professional realistic studio product render of: ${prompt}. White background, high detail, clean lighting`,
+              n: 1
+            })
+          });
+          const imgData = await imgRes.json();
+          imageUrl = imgData.data[0].url;
+        }
+
+        document.getElementById(loadingId).remove();
+        messages.push({role: "assistant", content: reply, image: imageUrl});
+        renderChat();
+
+      } catch (e) {
+        document.getElementById(loadingId).remove();
+        messages.push({role: "assistant", content: `⚠️ ${e.message || "Something went wrong"} — check your API key?`});
+        renderChat();
+      }
+    }
+
+    function quickAction(type) {
+      const idea = prompt("What’s your lazy invention idea?");
+      if (!idea) return;
+      let text = "";
+      if (type === "full") text = `Prototype this FAST: ${idea}`;
+      else if (type === "visualize") text = `Generate realistic image of: ${idea}`;
+      else if (type === "bom") text = `Give me the full cheap BOM for: ${idea}`;
+      else if (type === "code") text = `Write complete working code for: ${idea}`;
+      else if (type === "guide") text = `Give the world’s laziest 5-step build guide for: ${idea}`;
+      
+      document.getElementById("prompt").value = text;
+      sendMessage();
+    }
+
+    // Load on start
+    window.onload = () => {
+      renderChat();
+      if (API_KEY) document.getElementById("apiKey").placeholder = "Key saved ✓";
+    };
+  </script>
+</body>
+</html>
