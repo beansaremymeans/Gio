@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Gio Lite — Lazy Inventor</title>
+  <link rel="manifest" href="data:application/manifest+json,{
+    \"name\": \"Gio Lite\",
+    \"short_name\": \"Gio\",
+    \"start_url\": \".\",
+    \"display\": \"standalone\",
+    \"background_color\": \"#000000\",
+    \"theme_color\": \"#22c55e\",
+    \"icons\": [{\"src\": \"https://em-content.zobj.net/thumbs/120/apple/325/light-bulb_1f4a1.png\", \"sizes\": \"192x192\", \"type\": \"image/png\"}]
+  }">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .chat-bubble { max-width: 85%; }
+  </style>
+</head>
+<body class="bg-black text-white min-h-screen pb-20">
+  <div class="max-w-xl mx-auto">
+    <!-- Header -->
+    <div class="bg-zinc-900 p-4 flex items-center gap-3 border-b border-zinc-800 sticky top-0 z-50">
+      <div class="w-10 h-10 bg-lime-400 rounded-3xl flex items-center justify-center text-3xl shadow-inner">💡</div>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Gio Lite</h1>
+        <p class="text-lime-400 text-sm -mt-1">100% Local • Zero Cost • Lazy Inventor OS</p>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div id="chat" class="p-4 space-y-6 min-h-[calc(100vh-180px)] overflow-y-auto pb-32"></div>
+
+    <!-- Quick buttons -->
+    <div class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-700 rounded-3xl px-4 py-3 flex gap-2 shadow-2xl z-50 max-w-[92%] overflow-x-auto">
+      <button onclick="quickAction('full')" class="bg-lime-400 hover:bg-lime-300 text-black px-6 py-2.5 rounded-2xl text-sm font-semibold whitespace-nowrap">🔨 Full Prototype</button>
+      <button onclick="quickAction('visualize')" class="bg-white text-black px-6 py-2.5 rounded-2xl text-sm font-semibold whitespace-nowrap">🖼️ Imagine</button>
+      <button onclick="quickAction('bom')" class="bg-white text-black px-6 py-2.5 rounded-2xl text-sm font-semibold whitespace-nowrap">📋 BOM</button>
+      <button onclick="quickAction('code')" class="bg-white text-black px-6 py-2.5 rounded-2xl text-sm font-semibold whitespace-nowrap">💻 Code</button>
+      <button onclick="quickAction('guide')" class="bg-white text-black px-6 py-2.5 rounded-2xl text-sm font-semibold whitespace-nowrap">📖 Lazy Guide</button>
+    </div>
+
+    <!-- Input -->
+    <div class="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-700 p-4 max-w-xl mx-auto">
+      <div class="flex gap-3">
+        <input id="prompt" type="text" placeholder="Your lazy invention idea..." 
+               class="flex-1 bg-zinc-800 rounded-3xl px-5 py-4 text-sm focus:outline-none"
+               onkeypress="if(event.key==='Enter') sendMessage()">
+        <button onclick="sendMessage()" 
+                class="w-14 h-14 bg-lime-400 rounded-3xl flex items-center justify-center text-black text-3xl shadow-inner">↑</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let messages = [
+      {role: "assistant", content: "Yo! I'm Gio Lite — 100% local, zero cost, no keys. Drop your laziest invention idea and I'll prototype it instantly using pure browser magic. What's the dumb genius idea today? 🚀"}
+    ];
+
+    function renderChat() {
+      const chat = document.getElementById("chat");
+      chat.innerHTML = "";
+      messages.forEach(m => {
+        if (m.role === "assistant") {
+          const div = document.createElement("div");
+          div.className = "flex justify-start";
+          div.innerHTML = `
+            <div class="chat-bubble bg-zinc-800 rounded-3xl rounded-tl-none px-5 py-4 max-w-[85%]">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-3xl">💡</span>
+                <span class="font-bold text-lime-400">Gio Lite</span>
+              </div>
+              <div class="text-[15px] leading-relaxed whitespace-pre-wrap">${m.content}</div>
+            </div>`;
+          chat.appendChild(div);
+        } else if (m.role === "user") {
+          const div = document.createElement("div");
+          div.className = "flex justify-end";
+          div.innerHTML = `<div class="chat-bubble bg-lime-400 text-black rounded-3xl rounded-tr-none px-5 py-4">${m.content}</div>`;
+          chat.appendChild(div);
+        }
+      });
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function generatePrototype(idea) {
+      const lower = idea.toLowerCase();
+      let refined = `A ${idea} that actually works while you stay on the couch.`;
+      
+      // Sarcastic refined idea
+      if (lower.includes("drone") || lower.includes("fly")) refined = `A lazy ${idea} that delivers snacks to your couch automatically.`;
+      else if (lower.includes("pizza")) refined = `Solar-powered pizza warmer drone because walking to the kitchen is too much effort.`;
+      else if (lower.includes("solar")) refined = `A ${idea} that charges itself so you never have to plug it in (you're welcome).`;
+
+      const bom = `• 1x cheap Arduino Nano clone ($4 on AliExpress)\n• 1x random sensor you already have in a drawer\n• Duct tape & zip ties (the real MVP)\n• Your couch (for testing)`;
+      
+      const code = `// Lazy prototype code - just copy-paste\nconsole.log("🚀 ${idea} online!")\n// Add your own genius here...`;
+      
+      const guide = `1. Order parts while lying down\n2. Wait for delivery\n3. Plug stuff together until it beeps\n4. Call it a prototype\n5. Post on X and claim you're an inventor`;
+
+      return `**Refined idea:** ${refined}\n\n**Key features:**\n• Extremely low effort\n• Sarcasm included\n• Works while you're horizontal\n\n**Cheap BOM:**\n${bom}\n\n**5-step lazy build guide:**\n${guide}\n\n**Code snippet:**\n\`\`\`js\n${code}\n\`\`\`\n\nFeasibility: 7/10 (because you're lazy, not incapable)`;
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById("prompt");
+      const prompt = input.value.trim();
+      if (!prompt) return;
+
+      messages.push({role: "user", content: prompt});
+      renderChat();
+      input.value = "";
+
+      // Show thinking
+      const loadingId = "loading-" + Date.now();
+      const chat = document.getElementById("chat");
+      chat.innerHTML += `<div id="${loadingId}" class="flex justify-start"><div class="chat-bubble bg-zinc-800 rounded-3xl rounded-tl-none px-5 py-4 flex items-center gap-3"><span class="text-3xl animate-pulse">💡</span><span>Gio Lite is prototyping...</span></div></div>`;
+      chat.scrollTop = chat.scrollHeight;
+
+      // Simulate "thinking" then generate response
+      setTimeout(() => {
+        document.getElementById(loadingId).remove();
+        const reply = generatePrototype(prompt);
+        messages.push({role: "assistant", content: reply});
+        renderChat();
+      }, 800); // feels instant but natural
+    }
+
+    function quickAction(type) {
+      const idea = prompt("What’s your lazy invention idea?");
+      if (!idea) return;
+      let text = idea;
+      if (type === "full") text = `Prototype this FAST: ${idea}`;
+      else if (type === "visualize") text = `Imagine this: ${idea}`;
+      else if (type === "bom") text = `BOM for: ${idea}`;
+      else if (type === "code") text = `Code for: ${idea}`;
+      else if (type === "guide") text = `Lazy guide for: ${idea}`;
+      
+      document.getElementById("prompt").value = text;
+      sendMessage();
+    }
+
+    // Start
+    window.onload = renderChat;
+  </script>
+</body>
+</html>
